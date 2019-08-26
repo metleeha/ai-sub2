@@ -1,0 +1,9 @@
+settings.json
+*.idea
+*.clf
+db.sqlite3
+ratings_test.txt
+ratings_train.txt
+
+__pycache__
+node_modules
