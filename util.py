@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 
 ################
 # Progress Bar #
@@ -12,3 +13,8 @@ def printProgress(iteration, total, prefix='', suffix='', decimals=1, barLength=
     if iteration == total:
         sys.stdout.write('\n')
     sys.stdout.flush()
+
+
+# Calc Accuracy
+def getAcc(Y_pred, Y):
+    return (np.array(Y_pred) == np.array(Y)).mean()

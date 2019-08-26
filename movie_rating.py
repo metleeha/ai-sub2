@@ -31,7 +31,7 @@ def tokenize(doc):
     ret = []
     for i in range(len(doc)):
         if type(doc[i]) is str:
-            ret.append(okt.pos(doc[i]))
+            ret.append(okt.pos(doc[i], norm=True, stem=True))
 
         # Print Progress Bar
         if i % 1000 == 0:
@@ -60,6 +60,10 @@ test_docs = tokenize(test_data["document"].values)
 word_indices = {}
 
 # Req 1-1-3. word_indices 채우기
+for items in train_docs:
+    for elem in items:
+        if elem not in word_indices.keys():
+            word_indices[elem] = len(word_indices)
 
 # Req 1-1-4. sparse matrix 초기화
 # X: train feature data
@@ -85,10 +89,14 @@ clf2 <- Logistic regresion model
 """
 
 # Req 1-2-1. Naive baysian mdoel 학습
-clf = None
+clf = MultinomialNB()
+clf.fit(X, Y)
+y_pred = clf.predict(X_test)
 
 # Req 1-2-2. Logistic regresion mdoel 학습
-clf2 = None
+clf2 = LogisticRegression()
+clf2.fit(X, Y)
+y_pred2 = clf2.predict(X_test)
 
 
 """
@@ -96,19 +104,23 @@ clf2 = None
 """
 
 # Req 1-3-1. 문장 데이터에 따른 예측된 분류값 출력
-print("Naive bayesian classifier example result: {}, {}".format(test_data[3][1],None))
-print("Logistic regression exampleresult: {}, {}".format(test_data[3][1],None))
+print("Naive bayesian classifier example result: {}, {}".format(Y_test[1], y_pred[1]))
+print("Logistic regression exampleresult: {}, {}".format(Y_test[1], y_pred2[1]))
 
 # Req 1-3-2. 정확도 출력
-print("Naive bayesian classifier accuracy: {}".format(None))
-print("Logistic regression accuracy: {}".format(None))
+print("Naive bayesian classifier accuracy: {}".format(util.getAcc(y_pred, Y_test)))
+print("Logistic regression accuracy: {}".format(util.getAcc(y_pred2, Y_test)))
 
 """
 데이터 저장 파트
 """
 
 # Req 1-4. pickle로 학습된 모델 데이터 저장
+with open("model1.clf", "wb") as f:
+    pickle.dump(clf, f)
 
+with open("model2.clf", "wb") as f:
+    pickle.dump(clf2, f)
     
 # Naive bayes classifier algorithm part
 # 아래의 코드는 심화 과정이기에 사용하지 않는다면 주석 처리하고 실행합니다.
