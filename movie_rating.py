@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import pickle
 
 from konlpy.tag import Okt
@@ -6,14 +7,16 @@ from scipy.sparse import lil_matrix
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 
+import os
+path_dir = os.path.dirname(__file__)
 """
 Req 1-1-1. 데이터 읽기
 read_data(): 데이터를 읽어서 저장하는 함수
 """
 
 def read_data(filename):
-    with open(filename, 'rb') as f:
-        return pickle.load(f)
+    return pd.read_csv(path_dir + "/" + filename, sep="\t")
+    # return open(path_dir + "/" + filename, mode='r', encoding='utf-8')
 
 """
 Req 1-1-2. 토큰화 함수
@@ -21,7 +24,8 @@ tokenize(): 텍스트 데이터를 받아 KoNLPy의 okt 형태소 분석기로 �
 """
 
 def tokenize(doc):
-    return 1
+    print(doc[0][0])
+    return doc
 
 """
 데이터 전 처리
@@ -31,14 +35,17 @@ def tokenize(doc):
 train_data = read_data('ratings_train.txt')
 test_data = read_data('ratings_test.txt')
 
-print(train_data)
-print(test_data)
+# print(train_data)
+# print(test_data)
 
 
-# # Req 1-1-2. 문장 데이터 토큰화
-# # train_docs, test_docs : 토큰화된 트레이닝, 테스트  문장에 label 정보를 추가한 list
-# train_docs = None
-# test_docs = None
+# Req 1-1-2. 문장 데이터 토큰화
+# train_docs, test_docs : 토큰화된 트레이닝, 테스트  문장에 label 정보를 추가한 list
+train_docs = tokenize(train_data[["document", "label"]].values)
+test_docs = tokenize(test_data[["document", "label"]].values)
+
+# print(train_docs)
+# print(test_docs)
 
 
 # # Req 1-1-3. word_indices 초기화
