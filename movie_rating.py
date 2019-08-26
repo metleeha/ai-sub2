@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import pickle
+import json
+from pprint import pprint
 
 from konlpy.tag import Okt
 from scipy.sparse import lil_matrix
@@ -58,31 +60,46 @@ read_data(): 데이터를 읽어서 저장하는 함수
 # # print(train_docs)
 # # print(test_docs)
 
-hadong_test_json = 
+with open(path_dir + '/train_docs.json', 'r', encoding="utf-8") as f:
+    hadong_train_json = json.load(f)
+with open(path_dir + '/test_docs.json', 'r', encoding="utf-8") as f:
+    hadong_test_json = json.load(f)
 
+# pprint(hadong_train_json[0])
+pprint(hadong_train_json[0][1])
+# pprint(hadong_test_json[0])
 # Req 1-1-3. word_indices 초기화
 word_indices = {}
 
 # Req 1-1-3. word_indices 채우기
+for items in hadong_train_json:
+    for elem in items[0]:
+        word = elem
+        if word not in word_indices.keys():
+            word_indices[word] = len(word_indices)
 
+# print(word_indices)
 # Req 1-1-4. sparse matrix 초기화
 # X: train feature data
 # X_test: test feature data
-X = lil_matrix(train_docs)
-X_test = lil_matrix(test_docs)
+# X = lil_matrix(hadong_train_json)
+# X_test = lil_matrix(hadong_test_json)
+
+# print(X)
+# print(X_test)
 
 
 # 평점 label 데이터가 저장될 Y 행렬 초기화
 # Y: train data label
 # Y_test: test data label
-Y = train_data[["label"]].values
-Y_test = train_data[["label"]].values
+Y = [item[1] for item in hadong_train_json]
+Y_test = [item[1] for item in hadong_test_json]
 
 # print(Y)
 # print(Y_test)
 
-# # Req 1-1-5. one-hot 임베딩
-# # X,Y 벡터값 채우기
+# Req 1-1-5. one-hot 임베딩
+# X,Y 벡터값 채우기
 
 
 # """
