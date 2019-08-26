@@ -1,8 +1,7 @@
 import numpy as np
 import pickle
 import pandas as pd
-import jpype
-
+import json
 import util
 
 from konlpy.tag import Okt
@@ -17,28 +16,20 @@ read_data(): 데이터를 읽어서 저장하는 함수
 import os
 OS_PATH = os.path.dirname(__file__)
 
+
 def read_data(filename):
-    return pd.read_csv(OS_PATH + "/" + filename, sep="\t", encoding="utf-8")
+    return pd.read_csv(OS_PATH + "/" + filename, sep="\t", encoding="utf-8").values
+
 
 
 """
 Req 1-1-2. 토큰화 함수
 tokenize(): 텍스트 데이터를 받아 KoNLPy의 okt 형태소 분석기로 토크나이징
 """
-
+okt = Okt()
 def tokenize(doc):
-    okt = Okt()
-    ret = []
-    for i in range(len(doc)):
-        if type(doc[i]) is str:
-            ret.append(okt.pos(doc[i], norm=True, stem=True))
-
-        # Print Progress Bar
-        if i % 1000 == 0:
-            util.printProgress(i, len(doc), 'Progress:', 'Complete', 1, 50)
-
-    print()
-    return ret
+    # norm은 정규화, stem은 근어로 표시하기를 나타냄
+    return [t for t in okt.pos(doc, norm=True, stem=True)]
 
 
 """
@@ -49,11 +40,22 @@ def tokenize(doc):
 train_data = read_data('ratings_train.txt')
 test_data = read_data('ratings_test.txt')
 
-
 # Req 1-1-2. 문장 데이터 토큰화
 # train_docs, test_docs : 토큰화된 트레이닝, 테스트  문장에 label 정보를 추가한 list
-train_docs = tokenize(train_data["document"].values)
-test_docs = tokenize(test_data["document"].values)
+
+if os.path.isfile('train_docs.json'):
+    with open('train_docs.json', encoding="utf-8") as f:
+        train_docs = json.load(f)
+    with open('test_docs.json', encoding="utf-8") as f:
+        test_docs = json.load(f)
+else:
+    train_docs = [(tokenize(row[1]), row[2]) for row in train_data]
+    test_docs = [(tokenize(row[1]), row[2]) for row in test_data]
+    # JSON 파일로 저장
+    with open('train_docs.json', 'w', encoding="utf-8") as make_file:
+        json.dump(train_docs, make_file, ensure_ascii=False, indent="\t")
+    with open('test_docs.json', 'w', encoding="utf-8") as make_file:
+        json.dump(test_docs, make_file, ensure_ascii=False, indent="\t")
 
 
 # Req 1-1-3. word_indices 초기화
@@ -61,9 +63,10 @@ word_indices = {}
 
 # Req 1-1-3. word_indices 채우기
 for items in train_docs:
-    for elem in items:
-        if elem not in word_indices.keys():
-            word_indices[elem] = len(word_indices)
+    for elem in items[0]:
+        word = elem[0]+'/'+elem[1]
+        if word not in word_indices.keys():
+            word_indices[word] = len(word_indices)
 
 # Req 1-1-4. sparse matrix 초기화
 # X: train feature data
