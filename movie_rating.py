@@ -71,18 +71,24 @@ for items in train_docs:
 # Req 1-1-4. sparse matrix 초기화
 # X: train feature data
 # X_test: test feature data
-X = None
-X_test = None
+X = lil_matrix((len(train_docs),1))
+X_test = lil_matrix((len(test_docs),1))
 
 
 # 평점 label 데이터가 저장될 Y 행렬 초기화
 # Y: train data label
 # Y_test: test data label
-Y = train_data["label"].values
-Y_test = test_data["label"].values
+Y = train_data.T[2][:].T
+Y_test = test_data.T[2][:].T
 
 # Req 1-1-5. one-hot 임베딩
 # X,Y 벡터값 채우기
+for iter in range(len(train_docs)):
+    for word in train_docs[iter][0]:
+        wordKey = word[0]+"/"+word[1]
+        index = word_indices[wordKey]
+        X.rows[iter].append(index)
+        X.data[iter].append(index)
 
 
 """
@@ -93,12 +99,12 @@ clf2 <- Logistic regresion model
 
 # Req 1-2-1. Naive baysian mdoel 학습
 clf = MultinomialNB()
-clf.fit(X, Y)
+clf.fit(X.data, Y)
 y_pred = clf.predict(X_test)
 
 # Req 1-2-2. Logistic regresion mdoel 학습
 clf2 = LogisticRegression()
-clf2.fit(X, Y)
+clf2.fit(X.data, Y)
 y_pred2 = clf2.predict(X_test)
 
 
