@@ -1,5 +1,9 @@
 import numpy as np
 import pickle
+import pandas as pd
+import jpype
+
+import util
 
 from konlpy.tag import Okt
 from scipy.sparse import lil_matrix
@@ -10,9 +14,12 @@ from sklearn.linear_model import LogisticRegression
 Req 1-1-1. 데이터 읽기
 read_data(): 데이터를 읽어서 저장하는 함수
 """
+import os
+OS_PATH = os.path.dirname(__file__)
 
 def read_data(filename):
-    return None
+    return pd.read_csv(OS_PATH + "/" + filename, sep="\t", encoding="utf-8")
+
 
 """
 Req 1-1-2. 토큰화 함수
@@ -20,7 +27,19 @@ tokenize(): 텍스트 데이터를 받아 KoNLPy의 okt 형태소 분석기로 �
 """
 
 def tokenize(doc):
-    return
+    okt = Okt()
+    ret = []
+    for i in range(len(doc)):
+        if type(doc[i]) is str:
+            ret.append(okt.pos(doc[i]))
+
+        # Print Progress Bar
+        if i % 1000 == 0:
+            util.printProgress(i, len(doc), 'Progress:', 'Complete', 1, 50)
+
+    print()
+    return ret
+
 
 """
 데이터 전 처리
@@ -33,8 +52,8 @@ test_data = read_data('ratings_test.txt')
 
 # Req 1-1-2. 문장 데이터 토큰화
 # train_docs, test_docs : 토큰화된 트레이닝, 테스트  문장에 label 정보를 추가한 list
-train_docs = None
-test_docs = None
+train_docs = tokenize(train_data["document"].values)
+test_docs = tokenize(test_data["document"].values)
 
 
 # Req 1-1-3. word_indices 초기화
@@ -52,8 +71,8 @@ X_test = None
 # 평점 label 데이터가 저장될 Y 행렬 초기화
 # Y: train data label
 # Y_test: test data label
-Y = None
-Y_test = None
+Y = train_data["label"].values
+Y_test = test_data["label"].values
 
 # Req 1-1-5. one-hot 임베딩
 # X,Y 벡터값 채우기
