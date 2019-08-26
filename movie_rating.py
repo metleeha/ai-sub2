@@ -7,6 +7,8 @@ from scipy.sparse import lil_matrix
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 
+import time
+
 import os
 path_dir = os.path.dirname(__file__)
 """
@@ -22,10 +24,18 @@ def read_data(filename):
 Req 1-1-2. 토큰화 함수
 tokenize(): 텍스트 데이터를 받아 KoNLPy의 okt 형태소 분석기로 토크나이징
 """
-
+okt = Okt()
+# otherdata = okt.pos("앜ㅋㅋㅋ 이게 대체 뭔 일이얔ㅋㅋㅋㅋ", norm=True, stem=True)
+# print(otherdata)
 def tokenize(doc):
-    print(doc[0][0])
-    return doc
+    rdata = []
+    for i in range(len(doc) - 1):
+        # print(i)
+        # print(doc[i][0])
+        if type(doc[i][0]) is str:
+            rdata.append(okt.pos(doc[i][0], norm=True, stem=True))
+        # print(rdata[i])
+    return rdata
 
 """
 데이터 전 처리
@@ -41,30 +51,37 @@ test_data = read_data('ratings_test.txt')
 
 # Req 1-1-2. 문장 데이터 토큰화
 # train_docs, test_docs : 토큰화된 트레이닝, 테스트  문장에 label 정보를 추가한 list
-train_docs = tokenize(train_data[["document", "label"]].values)
-test_docs = tokenize(test_data[["document", "label"]].values)
 
+start = time.time()
+train_docs = tokenize(train_data[["document"]].values)
+test_docs = tokenize(test_data[["document"]].values)
+end = time.time()
+
+print(end - start)
 # print(train_docs)
 # print(test_docs)
 
 
-# # Req 1-1-3. word_indices 초기화
-# word_indices = {}
+# Req 1-1-3. word_indices 초기화
+word_indices = {}
 
-# # Req 1-1-3. word_indices 채우기
+# Req 1-1-3. word_indices 채우기
 
-# # Req 1-1-4. sparse matrix 초기화
-# # X: train feature data
-# # X_test: test feature data
-# X = None
-# X_test = None
+# Req 1-1-4. sparse matrix 초기화
+# X: train feature data
+# X_test: test feature data
+X = lil_matrix(train_docs)
+X_test = lil_matrix(test_docs)
 
 
-# # 평점 label 데이터가 저장될 Y 행렬 초기화
-# # Y: train data label
-# # Y_test: test data label
-# Y = None
-# Y_test = None
+# 평점 label 데이터가 저장될 Y 행렬 초기화
+# Y: train data label
+# Y_test: test data label
+Y = train_data[["label"]].values
+Y_test = train_data[["label"]].values
+
+# print(Y)
+# print(Y_test)
 
 # # Req 1-1-5. one-hot 임베딩
 # # X,Y 벡터값 채우기
