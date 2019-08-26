@@ -16,51 +16,49 @@ Req 1-1-1. 데이터 읽기
 read_data(): 데이터를 읽어서 저장하는 함수
 """
 
-def read_data(filename):
-    return pd.read_csv(path_dir + "/" + filename, sep="\t")
-    # return open(path_dir + "/" + filename, mode='r', encoding='utf-8')
+# def read_data(filename):
+#     return pd.read_csv(path_dir + "/" + filename, sep="\t")
+#     # return open(path_dir + "/" + filename, mode='r', encoding='utf-8')
 
-"""
-Req 1-1-2. 토큰화 함수
-tokenize(): 텍스트 데이터를 받아 KoNLPy의 okt 형태소 분석기로 토크나이징
-"""
-okt = Okt()
-# otherdata = okt.pos("앜ㅋㅋㅋ 이게 대체 뭔 일이얔ㅋㅋㅋㅋ", norm=True, stem=True)
-# print(otherdata)
-def tokenize(doc):
-    rdata = []
-    for i in range(len(doc) - 1):
-        # print(i)
-        # print(doc[i][0])
-        if type(doc[i][0]) is str:
-            rdata.append(okt.pos(doc[i][0], norm=True, stem=True))
-        # print(rdata[i])
-    return rdata
+# """
+# Req 1-1-2. 토큰화 함수
+# tokenize(): 텍스트 데이터를 받아 KoNLPy의 okt 형태소 분석기로 토크나이징
+# """
+# okt = Okt()
+# # otherdata = okt.pos("앜ㅋㅋㅋ 이게 대체 뭔 일이얔ㅋㅋㅋㅋ", norm=True, stem=True)
+# # print(otherdata)
+# def tokenize(doc):
+#     rdata = []
+#     for i in range(len(doc) - 1):
+#         # print(i)
+#         # print(doc[i][0])
+#         if type(doc[i][0]) is str:
+#             rdata.append(okt.pos(doc[i][0], norm=True, stem=True))
+#         # print(rdata[i])
+#     return rdata
 
-"""
-데이터 전 처리
-"""
+# """
+# 데이터 전 처리
+# """
 
-# train, test 데이터 읽기
-train_data = read_data('ratings_train.txt')
-test_data = read_data('ratings_test.txt')
+# # train, test 데이터 읽기
+# train_data = read_data('ratings_train.txt')
+# test_data = read_data('ratings_test.txt')
 
-# print(train_data)
-# print(test_data)
+# # print(train_data)
+# # print(test_data)
 
 
-# Req 1-1-2. 문장 데이터 토큰화
-# train_docs, test_docs : 토큰화된 트레이닝, 테스트  문장에 label 정보를 추가한 list
+# # Req 1-1-2. 문장 데이터 토큰화
+# # train_docs, test_docs : 토큰화된 트레이닝, 테스트  문장에 label 정보를 추가한 list
 
-start = time.time()
-train_docs = tokenize(train_data[["document"]].values)
-test_docs = tokenize(test_data[["document"]].values)
-end = time.time()
+# train_docs = tokenize(train_data[["document"]].values)
+# test_docs = tokenize(test_data[["document"]].values)
 
-print(end - start)
-# print(train_docs)
-# print(test_docs)
+# # print(train_docs)
+# # print(test_docs)
 
+hadong_test_json = 
 
 # Req 1-1-3. word_indices 초기화
 word_indices = {}
