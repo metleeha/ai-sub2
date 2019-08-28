@@ -9,123 +9,161 @@ from scipy.sparse import lil_matrix
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 
-import time
-
 import os
-path_dir = os.path.dirname(__file__)
+OS_PATH = os.path.dirname(__file__)
 """
 Req 1-1-1. 데이터 읽기
 read_data(): 데이터를 읽어서 저장하는 함수
 """
 
-# def read_data(filename):
-#     return pd.read_csv(path_dir + "/" + filename, sep="\t")
-#     # return open(path_dir + "/" + filename, mode='r', encoding='utf-8')
+def read_data(filename):
+    with open(OS_PATH + "/" + filename, mode='r', encoding='utf-8') as f:
+        data = [line.split('\t') for line in f.read().splitlines()]
+        data = data[1:]
+    return data
 
-# """
-# Req 1-1-2. 토큰화 함수
-# tokenize(): 텍스트 데이터를 받아 KoNLPy의 okt 형태소 분석기로 토크나이징
-# """
-# okt = Okt()
-# # otherdata = okt.pos("앜ㅋㅋㅋ 이게 대체 뭔 일이얔ㅋㅋㅋㅋ", norm=True, stem=True)
-# # print(otherdata)
-# def tokenize(doc):
-#     rdata = []
-#     for i in range(len(doc) - 1):
-#         # print(i)
-#         # print(doc[i][0])
-#         if type(doc[i][0]) is str:
-#             rdata.append(okt.pos(doc[i][0], norm=True, stem=True))
-#         # print(rdata[i])
-#     return rdata
+"""
+Req 1-1-2. 토큰화 함수
+tokenize(): 텍스트 데이터를 받아 KoNLPy의 okt 형태소 분석기로 토크나이징
+"""
+okt = Okt()
 
-# """
-# 데이터 전 처리
-# """
+def tokenize(doc):
+    return ['/'.join(t) for t in okt.pos(doc, norm=True, stem=True)]
 
-# # train, test 데이터 읽기
-# train_data = read_data('ratings_train.txt')
-# test_data = read_data('ratings_test.txt')
+"""
+데이터 전 처리
+"""
 
-# # print(train_data)
-# # print(test_data)
+# Req 1-1-2. 문장 데이터 토큰화
+# train_docs, test_docs : 토큰화된 트레이닝, 테스트  문장에 label 정보를 추가한 list
 
+if os.path.isfile(OS_PATH + '/train_docs.json'):
+    print("if")
+    with open(OS_PATH + '/train_docs.json', encoding="utf-8") as f:
+        train_docs = json.load(f)
+    with open(OS_PATH + '/test_docs.json', encoding="utf-8") as f:
+        test_docs = json.load(f)
+else:
+    print("else")
+    # train, test 데이터 읽기
+    train_data = read_data('ratings_train.txt')
+    test_data = read_data('ratings_test.txt')
 
-# # Req 1-1-2. 문장 데이터 토큰화
-# # train_docs, test_docs : 토큰화된 트레이닝, 테스트  문장에 label 정보를 추가한 list
+    train_docs = [(tokenize(row[1]), row[2]) for row in train_data]
+    test_docs = [(tokenize(row[1]), row[2]) for row in test_data]
+    # JSON 파일로 저장
+    with open(OS_PATH + '/train_docs.json', 'w', encoding="utf-8") as make_file:
+        json.dump(train_docs, make_file, ensure_ascii=False, indent="\t")
+    with open(OS_PATH + '/test_docs.json', 'w', encoding="utf-8") as make_file:
+        json.dump(test_docs, make_file, ensure_ascii=False, indent="\t")
 
-# train_docs = tokenize(train_data[["document"]].values)
-# test_docs = tokenize(test_data[["document"]].values)
-
-# # print(train_docs)
-# # print(test_docs)
-
-with open(path_dir + '/train_docs.json', 'r', encoding="utf-8") as f:
-    hadong_train_json = json.load(f)
-with open(path_dir + '/test_docs.json', 'r', encoding="utf-8") as f:
-    hadong_test_json = json.load(f)
-
-# pprint(hadong_train_json[0])
-pprint(hadong_train_json[0][1])
-# pprint(hadong_test_json[0])
 # Req 1-1-3. word_indices 초기화
 word_indices = {}
 
 # Req 1-1-3. word_indices 채우기
-for items in hadong_train_json:
-    for elem in items[0]:
-        word = elem
-        if word not in word_indices.keys():
-            word_indices[word] = len(word_indices)
+for i in range(len(train_docs)):
+    for elem in train_docs[i][0]:
+        if elem not in word_indices.keys():
+            word_indices[elem] = len(word_indices)
 
-# print(word_indices)
 # Req 1-1-4. sparse matrix 초기화
 # X: train feature data
 # X_test: test feature data
-# X = lil_matrix(hadong_train_json)
-# X_test = lil_matrix(hadong_test_json)
+# X = np.zeros(len(train_docs), type=list)
+# X =  np.empty(size=(len(train_docs), len(train_docs)), dtype=np.object)
+X = []
+# X = lil_matrix((len(train_docs), 1))
+X_test = lil_matrix((len(test_docs), 1))
 
-# print(X)
+# my_array = numpy.empty((len(huge_list_of_lists), row_length))
+# for i, x in enumerate(huge_list_of_lists):
+#     my_array[i] = create_row(x)
+print(X)
 # print(X_test)
-
 
 # 평점 label 데이터가 저장될 Y 행렬 초기화
 # Y: train data label
 # Y_test: test data label
-Y = [item[1] for item in hadong_train_json]
-Y_test = [item[1] for item in hadong_test_json]
+Y = []
+Y_test = []
 
-# print(Y)
-# print(Y_test)
-
+# print(train_docs[1][0])
+# print(word_indices[])
 # Req 1-1-5. one-hot 임베딩
 # X,Y 벡터값 채우기
+for i in range(len(train_docs)):
+    # X[i] = np.empty(len(train_docs[i][0]))
+    # tmp = []
+    # for j in range(len(train_docs[i][0])):
+    #     tmp.append(word_indices[train_docs[i][0][j]])
+    # X[i].append(tmp)
+    X[i].append([word_indices[train_docs[i][0][i]] for i in range(len(train_docs[i][0]))])
+    # # print(i)
+    # X[i].astype(list)
+    # X[i] = np.zeros(len(train_docs[i][0]))
+    # # X[iter] = [word_indices[train_docs[iter][0][i]] for i in range(len(train_docs[iter][0]))]
+    # for j in range(len(train_docs[i][0])):
+    #     X[i][j] = word_indices[train_docs[i][0][j]]
 
+Y = [train_docs[i][1] for i in range(len(train_docs))]
+Y_test = [test_docs[i][1] for i in range(len(test_docs))]
 
-# """
-# 트레이닝 파트
-# clf  <- Naive baysian mdoel
-# clf2 <- Logistic regresion model
-# """
+"""
+트레이닝 파트
+clf  <- Naive baysian mdoel
+clf2 <- Logistic regresion model
+"""
 
-# # Req 1-2-1. Naive baysian mdoel 학습
-# clf = None
+# print(X)
+# print(X)
+# print(Y)
 
-# # Req 1-2-2. Logistic regresion mdoel 학습
-# clf2 = None
+# X22 = np.random.randint(5, size=(6, 100))
+# X22_test = np.random.randint(5, size=(1, 100))
+# y22 = np.array([1, 2, 3, 4, 5, 6])
+# print(X22)
+# print(y22)
+# print(X22_test)
+# clf3 = MultinomialNB()
+# clf3.fit(X22, y22)
+# MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)
+# print(clf3.predict(X22_test))
 
+# Req 1-2-1. Naive baysian mdoel 학습
 
-# """
-# 테스트 파트
-# """
+# print(X)
+RX = np.array(X)
+print(RX)
 
-# # Req 1-3-1. 문장 데이터에 따른 예측된 분류값 출력
-# print("Naive bayesian classifier example result: {}, {}".format(test_data[3][1],None))
-# print("Logistic regression exampleresult: {}, {}".format(test_data[3][1],None))
+print("start")
+clf = MultinomialNB()
+print("start2")
+clf.fit(RX, Y)
+print("start3")
+y_pred = clf.predict(X_test)
+print("start4")
 
-# # Req 1-3-2. 정확도 출력
-# print("Naive bayesian classifier accuracy: {}".format(None))
-# print("Logistic regression accuracy: {}".format(None))
+# Req 1-2-2. Logistic regresion mdoel 학습
+clf2 = LogisticRegression()
+clf2.fit(X, Y)
+y_pred2 = clf2.predict(X_test)
+print("end")
+
+def getAcc(Y_pred, Y):
+    return (np.array(Y_pred) == np.array(Y)).mean()
+
+"""
+테스트 파트
+"""
+
+# Req 1-3-1. 문장 데이터에 따른 예측된 분류값 출력
+print("Naive bayesian classifier example result: {}, {}".format(Y_test[1], y_pred[1]))
+print("Logistic regression exampleresult: {}, {}".format(Y_test[1], y_pred2[1]))
+
+# Req 1-3-2. 정확도 출력
+print("Naive bayesian classifier accuracy: {}".format(getAcc(y_pred, Y_test)))
+print("Logistic regression accuracy: {}".format(getAcc(y_pred2, Y_test)))
 
 # """
 # 데이터 저장 파트
