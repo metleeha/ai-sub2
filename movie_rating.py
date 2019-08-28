@@ -1,6 +1,7 @@
 import numpy as np
 import pickle
-import pandas as pd
+from itertools import chain
+import collections
 import json
 import util
 
@@ -16,10 +17,11 @@ read_data(): 데이터를 읽어서 저장하는 함수
 import os
 OS_PATH = os.path.dirname(__file__)
 
-
 def read_data(filename):
-    return pd.read_csv(OS_PATH + "/" + filename, sep="\t", encoding="utf-8").values
-
+    with open(filename, mode='r', encoding='utf-8') as f:
+        data = [line.split('\t') for line in f.read().splitlines()]
+        data = data[1:]
+    return data
 
 
 """
@@ -29,17 +31,11 @@ tokenize(): 텍스트 데이터를 받아 KoNLPy의 okt 형태소 분석기로 �
 okt = Okt()
 def tokenize(doc):
     # norm은 정규화, stem은 근어로 표시하기를 나타냄
-    return [t for t in okt.pos(doc, norm=True, stem=True)]
-
+    return ['/'.join(t) for t in okt.pos(doc, norm=True, stem=True)]
 
 """
 데이터 전 처리
 """
-
-# train, test 데이터 읽기
-train_data = read_data('ratings_train.txt')
-test_data = read_data('ratings_test.txt')
-
 # Req 1-1-2. 문장 데이터 토큰화
 # train_docs, test_docs : 토큰화된 트레이닝, 테스트  문장에 label 정보를 추가한 list
 
@@ -49,6 +45,10 @@ if os.path.isfile('train_docs.json'):
     with open('test_docs.json', encoding="utf-8") as f:
         test_docs = json.load(f)
 else:
+    # train, test 데이터 읽기
+    train_data = read_data('ratings_train.txt')
+    test_data = read_data('ratings_test.txt')
+
     train_docs = [(tokenize(row[1]), row[2]) for row in train_data]
     test_docs = [(tokenize(row[1]), row[2]) for row in test_data]
     # JSON 파일로 저장
@@ -62,49 +62,59 @@ else:
 word_indices = {}
 
 # Req 1-1-3. word_indices 채우기
+VOCA_DICT_N = 10000
+most_common = collections.Counter(chain.from_iterable(np.array(train_docs).T[0])).most_common(VOCA_DICT_N)
+word_indices = {p[0]: i for i, p in enumerate(most_common)}
+
 for items in train_docs:
-    for elem in items[0]:
-        word = elem[0]+'/'+elem[1]
+    for word in items[0]:
         if word not in word_indices.keys():
             word_indices[word] = len(word_indices)
 
 # Req 1-1-4. sparse matrix 초기화
 # X: train feature data
 # X_test: test feature data
-X = lil_matrix((len(train_docs),1))
-X_test = lil_matrix((len(test_docs),1))
-
 
 # 평점 label 데이터가 저장될 Y 행렬 초기화
 # Y: train data label
 # Y_test: test data label
-Y = train_data.T[2][:].T
-Y_test = test_data.T[2][:].T
+Y = np.asarray(np.array(train_docs).T[1], dtype=int)
+Y_test = np.asarray(np.array(test_docs).T[1], dtype=int)
 
 # Req 1-1-5. one-hot 임베딩
 # X,Y 벡터값 채우기
-for iter in range(len(train_docs)):
-    for word in train_docs[iter][0]:
-        wordKey = word[0]+"/"+word[1]
-        index = word_indices[wordKey]
-        X.rows[iter].append(index)
-        X.data[iter].append(index)
-
-
 """
 트레이닝 파트
 clf  <- Naive baysian mdoel
 clf2 <- Logistic regresion model
 """
+def extract_features(X):
+    VOCAB_SIZE = len(word_indices)
+    features = lil_matrix((len(X), VOCAB_SIZE))
+
+    for iter in range(len(X)):
+        for words in X[iter]:
+            for curWord in words:
+                if word_indices.get(curWord) is not None:
+                    index = word_indices[curWord]
+                    features[iter, index] += 1
+    return features
+
 
 # Req 1-2-1. Naive baysian mdoel 학습
 clf = MultinomialNB()
-clf.fit(X.data, Y)
+batch_size = 1000
+totalIter = int(len(train_docs) / batch_size)
+X_train = extract_features(train_docs)
+clf.fit(X_train, Y)
+
+X_test = extract_features(test_docs)
 y_pred = clf.predict(X_test)
 
 # Req 1-2-2. Logistic regresion mdoel 학습
 clf2 = LogisticRegression()
-clf2.fit(X.data, Y)
+clf2.fit(X_train, Y)
+
 y_pred2 = clf2.predict(X_test)
 
 
