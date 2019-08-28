@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import cpi
 from itertools import chain
 import collections
 import json
@@ -62,18 +63,15 @@ else:
 word_indices = {}
 
 # Req 1-1-3. word_indices 채우기
-VOCA_DICT_N = 10000
-most_common = collections.Counter(chain.from_iterable(np.array(train_docs).T[0])).most_common(VOCA_DICT_N)
-word_indices = {p[0]: i for i, p in enumerate(most_common)}
+# VOCA_DICT_N = 10000
+# most_common = collections.Counter(chain.from_iterable(np.array(train_docs).T[0])).most_common(VOCA_DICT_N)
+# word_indices = {p[0]: i for i, p in enumerate(most_common)}
 
+print("before train_docs")
 for items in train_docs:
     for word in items[0]:
         if word not in word_indices.keys():
             word_indices[word] = len(word_indices)
-
-# Req 1-1-4. sparse matrix 초기화
-# X: train feature data
-# X_test: test feature data
 
 # 평점 label 데이터가 저장될 Y 행렬 초기화
 # Y: train data label
@@ -81,47 +79,66 @@ for items in train_docs:
 Y = np.asarray(np.array(train_docs).T[1], dtype=int)
 Y_test = np.asarray(np.array(test_docs).T[1], dtype=int)
 
+
+# Req 1-1-4. sparse matrix 초기화
+# X: train feature data
+# X_test: test feature data
+
 # Req 1-1-5. one-hot 임베딩
 # X,Y 벡터값 채우기
-"""
-트레이닝 파트
-clf  <- Naive baysian mdoel
-clf2 <- Logistic regresion model
-"""
 def extract_features(X):
     VOCAB_SIZE = len(word_indices)
     features = lil_matrix((len(X), VOCAB_SIZE))
 
     for iter in range(len(X)):
-        for words in X[iter]:
-            for curWord in words:
-                if word_indices.get(curWord) is not None:
-                    index = word_indices[curWord]
-                    features[iter, index] += 1
+        # for words in X[iter]:
+        for curWord in X[iter][0]:
+            if word_indices.get(curWord) is not None:
+                index = word_indices[curWord]
+                features[iter, index] += 1
+        util.printProgress(iter, len(X), 'Progress:', 'Complete', 1, 50)
     return features
 
 
+if os.path.isfile('X_train.pkl'):
+    with open('X_train.pkl', 'rb') as f:
+        X_train = json.load(f)
+else:
+    # pickle 파일로 저장
+    with open('X_train.pkl', 'wb') as make_file:
+        print("befo X_train")
+        X_train = extract_features(train_docs)
+        pickle.dump(X_train, make_file, pickle.HIGHEST_PROTOCOL)
+
+if os.path.isfile('X_test.pkl'):
+    with open('X_test.pkl', 'rb') as f:
+        X_test = json.load(f)
+else:
+    # pickle 파일로 저장
+    with open('X_test.pkl', 'wb') as make_file:
+        print("befo X_test")
+        X_test = extract_features(test_docs)
+        pickle.dump(X_test, make_file, pickle.HIGHEST_PROTOCOL)
+
+"""
+트레이닝 파트
+clf  <- Naive baysian mdoel
+clf2 <- Logistic regresion model
+"""
 # Req 1-2-1. Naive baysian mdoel 학습
 clf = MultinomialNB()
-batch_size = 1000
-totalIter = int(len(train_docs) / batch_size)
-X_train = extract_features(train_docs)
 clf.fit(X_train, Y)
-
-X_test = extract_features(test_docs)
 y_pred = clf.predict(X_test)
 
 # Req 1-2-2. Logistic regresion mdoel 학습
 clf2 = LogisticRegression()
 clf2.fit(X_train, Y)
-
 y_pred2 = clf2.predict(X_test)
 
 
 """
 테스트 파트
 """
-
 # Req 1-3-1. 문장 데이터에 따른 예측된 분류값 출력
 print("Naive bayesian classifier example result: {}, {}".format(Y_test[1], y_pred[1]))
 print("Logistic regression exampleresult: {}, {}".format(Y_test[1], y_pred2[1]))
