@@ -7,6 +7,7 @@ import util
 
 from konlpy.tag import Okt
 from scipy.sparse import lil_matrix
+from scipy.io import mmwrite, mmread
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 
@@ -62,24 +63,18 @@ else:
 word_indices = {}
 
 # Req 1-1-3. word_indices 채우기
-VOCA_DICT_N = 10000
-most_common = collections.Counter(chain.from_iterable(np.array(train_docs).T[0])).most_common(VOCA_DICT_N)
-word_indices = {p[0]: i for i, p in enumerate(most_common)}
-
 for items in train_docs:
     for word in items[0]:
         if word not in word_indices.keys():
             word_indices[word] = len(word_indices)
 
-# Req 1-1-4. sparse matrix 초기화
-# X: train feature data
-# X_test: test feature data
 
 # 평점 label 데이터가 저장될 Y 행렬 초기화
 # Y: train data label
 # Y_test: test data label
 Y = np.asarray(np.array(train_docs).T[1], dtype=int)
 Y_test = np.asarray(np.array(test_docs).T[1], dtype=int)
+
 
 # Req 1-1-5. one-hot 임베딩
 # X,Y 벡터값 채우기
@@ -98,23 +93,34 @@ def extract_features(X):
                 if word_indices.get(curWord) is not None:
                     index = word_indices[curWord]
                     features[iter, index] += 1
+
+    util.printProgress(iter, len(X), 'Progress:', 'Complete', 1, 50)
     return features
 
 
+# Req 1-1-4. sparse matrix 초기화
+# X: train feature data
+# X_test: test feature data
+if os.path.isfile('X_train.mtx'):
+    X_train = mmread('X_train.mtx')
+else:
+    X_train = extract_features(train_docs)
+    mmwrite('X_train.mtx', X_train)
+
+if os.path.isfile('X_test.mtx'):
+    X_test = mmread('X_test.mtx')
+else:
+    X_test = extract_features(test_docs)
+    mmwrite('X_test.mtx', X_test)
+
 # Req 1-2-1. Naive baysian mdoel 학습
 clf = MultinomialNB()
-batch_size = 1000
-totalIter = int(len(train_docs) / batch_size)
-X_train = extract_features(train_docs)
 clf.fit(X_train, Y)
-
-X_test = extract_features(test_docs)
 y_pred = clf.predict(X_test)
 
 # Req 1-2-2. Logistic regresion mdoel 학습
 clf2 = LogisticRegression()
 clf2.fit(X_train, Y)
-
 y_pred2 = clf2.predict(X_test)
 
 
