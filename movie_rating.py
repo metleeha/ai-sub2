@@ -154,7 +154,7 @@ class Naive_Bayes_Classifier(object):
     """
     
     def log_likelihoods_naivebayes(self, feature_vector, Class):
-        log_likelihood = 0.0
+        log_likelihood = np.zeros(len(feature_vector))
         smoothing = 1
 
         if Class == 0:
@@ -163,18 +163,18 @@ class Naive_Bayes_Classifier(object):
 
             for feature_index in range(len(feature_vector)):
                 if feature_vector[feature_index] > 0: #feature present
-                    log_likelihood += np.log((feature_vector[feature_index]+smoothing) / num_feature)
+                    log_likelihood[feature_index] += np.log((feature_vector[feature_index]+smoothing) / num_feature)
                 elif feature_vector[feature_index] == 0: #feature absent
-                    log_likelihood += np.log(1 / num_feature)
+                    log_likelihood[feature_index] += np.log(1 / num_feature)
         elif Class == 1:
             smooth_V = len(feature_vector)
             num_feature = np.sum(feature_vector) + smooth_V
 
             for feature_index in range(len(feature_vector)):
                 if feature_vector[feature_index] > 0:
-                    log_likelihood += np.log((feature_vector[feature_index]+smoothing) / num_feature)
+                    log_likelihood[feature_index] += np.log((feature_vector[feature_index]+smoothing) / num_feature)
                 elif feature_vector[feature_index] == 0:
-                    log_likelihood += np.log(1 / num_feature)
+                    log_likelihood[feature_index] += np.log(1 / num_feature)
                 
         return log_likelihood
 
@@ -189,6 +189,12 @@ class Naive_Bayes_Classifier(object):
         log_likelihood_0 = self.log_likelihoods_naivebayes(feature_vector, Class=0)
         log_likelihood_1 = self.log_likelihoods_naivebayes(feature_vector, Class=1)
         # 여기서 log_likelihoods를 메소드에 들어가서 가져오지 말고, 이미 학습할 때 구해놓은 값을 이용해서!
+        log_likelihood_0 = 0.0
+        log_likelihood_1 = 0.0
+        for feature_index in range(len(feature_vector)):
+            if feature_vector[feature_index] > 0:  # feature present
+                log_likelihood_0 += self.likelihoods_0[feature_index]
+                log_likelihood_1 += self.likelihoods_1[feature_index]
 
         log_posterior_0 = log_likelihood_0 + self.log_prior_0
         log_posterior_1 = log_likelihood_1 + self.log_prior_1
@@ -237,32 +243,26 @@ class Naive_Bayes_Classifier(object):
 
 
         # 데이터의 num_0,num_1,num_token_0,num_token_1 값 계산
-        if os.path.isfile('num_token_1.json'):
-            load_file_0 = open('num_token_0.json', 'r')
-            load_file_1 = open('num_token_1.json', 'r')
-            num_token_0 = json.load(load_file_0)
-            num_token_1 = json.load(load_file_1)
-            load_file_0.close()
-            load_file_1.close()
+        if os.path.isfile('num_token_1.npy'):
+            num_token_0 = np.load('num_token_0.npy')
+            num_token_1 = np.load('num_token_1.npy')
         else:
             # JSON 파일로 저장
             for i in range(X.shape[0]):
-                util.printProgress(i, X.shape[0], 'num_token Progress', 'Complete', 1, 50)
                 if Y[i] == 0:
                     num_token_0 += X.getrow(i)
                 elif Y[i] == 1:
                     num_token_1 += X.getrow(i)
 
-            make_file_0 = open('num_token_0.json', 'w')
-            make_file_1 = open('num_token_1.json', 'w')
-            json.dump(num_token_0, make_file_0, ensure_ascii=False, indent="\t")
-            json.dump(num_token_1, make_file_1, ensure_ascii=False, indent="\t")
-            make_file_0.close()
-            make_file_1.close()
+                if i % 2000 == 0:
+                    util.printProgress(i, X.shape[0], 'num_token Progress', 'Complete', 1, 50)
+
+            np.save('num_token_0.npy', num_token_0)
+            np.save('num_token_1.npy', num_token_1)
 
         # smoothing을 사용하여 각 클래스에 해당되는 likelihood값 계산        
-        self.likelihoods_0 = self.log_likelihoods_naivebayes(num_token_0, 0)
-        self.likelihoods_1 = self.log_likelihoods_naivebayes(num_token_1, 1)
+        self.likelihoods_0 = self.log_likelihoods_naivebayes(num_token_0[0], 0)
+        self.likelihoods_1 = self.log_likelihoods_naivebayes(num_token_1[0], 1)
 
         # 각 class의 prior를 계산
         prior_probability_0 = np.mean(Y == 0)
@@ -309,7 +309,6 @@ model.train(X_train, Y)
 
 # Req 3-2-2. 정확도 측정
 print("Naive_Bayes_Classifier accuracy: {}".format(model.score(X_test, Y_test)))
-print("Req3 Done")
 
 # Logistic regression algorithm part
 # 아래의 코드는 심화 과정이기에 사용하지 않는다면 주석 처리하고 실행합니다.
