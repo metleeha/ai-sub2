@@ -1,7 +1,5 @@
 import numpy as np
 import pickle
-from itertools import chain
-import collections
 import json
 import util
 
@@ -82,11 +80,10 @@ def extract_features(X):
     features = lil_matrix((len(X), VOCAB_SIZE))
 
     for iter in range(len(X)):
-        for words in X[iter]:
-            for curWord in words:
-                if word_indices.get(curWord) is not None:
-                    index = word_indices[curWord]
-                    features[iter, index] += 1
+        for curWord in X[iter][0]:
+            if word_indices.get(curWord) is not None:
+                index = word_indices[curWord]
+                features[iter, index] += 1
 
     util.printProgress(iter, len(X), 'Progress:', 'Complete', 1, 50)
     return features
