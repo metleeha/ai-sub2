@@ -74,6 +74,8 @@ for items in train_docs:
 # Req 1-1-4. sparse matrix 초기화
 # X: train feature data
 # X_test: test feature data
+X_train = lil_matrix((len(train_docs), len(word_indices)))
+X_test = lil_matrix((len(test_docs), len(word_indices)))
 
 # 평점 label 데이터가 저장될 Y 행렬 초기화
 # Y: train data label
@@ -83,6 +85,28 @@ Y_test = np.asarray(np.array(test_docs).T[1], dtype=int)
 
 # Req 1-1-5. one-hot 임베딩
 # X,Y 벡터값 채우기
+if os.path.isfile('X_train.mtx'):
+    # print("*.mtx is exist")
+    X_train = mmread('X_train.mtx')
+    X_test = mmread('X_test.mtx')
+else:
+    # print("*.mtx is non exist")
+    for i in range(len(train_docs)):
+        for curWord in train_docs[i][0]:
+            if word_indices.get(curWord) is not None:
+                index = word_indices[curWord]
+                X_train[i, index] += 1
+
+    for i in range(len(test_docs)):
+        for curWord in test_docs[i][0]:
+            if word_indices.get(curWord) is not None:
+                index = word_indices[curWord]
+                X_test[i, index] += 1
+
+    mmwrite('X_train.mtx', X_train)
+    mmwrite('X_test.mtx', X_test)
+
+
 """
 트레이닝 파트
 clf  <- Naive baysian mdoel
@@ -265,11 +289,9 @@ with open("model2.clf", "wb") as f:
 #     def predict(self, X_test):
 #         predictions = []
 #         X_test=X_test.toarray()
-#         if (len(X_test)==1):
-#             predictions.append(None)
-#         else:
-#             for case in X_test:
-#                 predictions.append(None)
+
+#         for case in X_test:
+#            predictions.append(self.classify(case))
         
 #         return predictions
 
