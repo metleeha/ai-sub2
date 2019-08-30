@@ -136,7 +136,7 @@ with open("model1.clf", "wb") as f:
 
 with open("model2.clf", "wb") as f:
     pickle.dump(clf2, f)
-    
+
 # Naive bayes classifier algorithm part
 # 아래의 코드는 심화 과정이기에 사용하지 않는다면 주석 처리하고 실행합니다.
 
@@ -152,7 +152,7 @@ class Naive_Bayes_Classifier(object):
     feature 데이터를 받아 label(class)값에 해당되는 likelihood 값들을
     naive한 방식으로 구하고 그 값의 log값을 리턴
     """
-    
+
     def log_likelihoods_naivebayes(self, feature_vector, Class):
         log_likelihood = np.zeros(len(feature_vector))
         smoothing = 1
@@ -175,7 +175,7 @@ class Naive_Bayes_Classifier(object):
                     log_likelihood[feature_index] += np.log((feature_vector[feature_index]+smoothing) / num_feature)
                 elif feature_vector[feature_index] == 0:
                     log_likelihood[feature_index] += np.log(1 / num_feature)
-                
+
         return log_likelihood
 
     """
@@ -186,15 +186,14 @@ class Naive_Bayes_Classifier(object):
     """
 
     def class_posteriors(self, feature_vector):
-        log_likelihood_0 = self.log_likelihoods_naivebayes(feature_vector, Class=0)
-        log_likelihood_1 = self.log_likelihoods_naivebayes(feature_vector, Class=1)
+        # log_likelihood_0 = self.log_likelihoods_naivebayes(feature_vector, Class=0)
+        # log_likelihood_1 = self.log_likelihoods_naivebayes(feature_vector, Class=1)
         # 여기서 log_likelihoods를 메소드에 들어가서 가져오지 말고, 이미 학습할 때 구해놓은 값을 이용해서!
         log_likelihood_0 = 0.0
         log_likelihood_1 = 0.0
         for feature_index in range(len(feature_vector)):
-            if feature_vector[feature_index] > 0:  # feature present
-                log_likelihood_0 += self.likelihoods_0[feature_index]
-                log_likelihood_1 += self.likelihoods_1[feature_index]
+            log_likelihood_0 += self.likelihoods_0[feature_vector[feature_index]]
+            log_likelihood_1 += self.likelihoods_1[feature_vector[feature_index]]
 
         log_posterior_0 = log_likelihood_0 + self.log_prior_0
         log_posterior_1 = log_likelihood_1 + self.log_prior_1
@@ -206,7 +205,7 @@ class Naive_Bayes_Classifier(object):
     classify():
     feature 데이터에 해당되는 posterir값들(class 개수)을 불러와 비교하여
     더 높은 확률을 갖는 class를 리턴
-    """    
+    """
 
     def classify(self, feature_vector):
         log_posterior_0, log_posterior_1 = self.class_posteriors(feature_vector)
@@ -280,16 +279,27 @@ class Naive_Bayes_Classifier(object):
     테스트 데이터에 대해서 예측 label값을 출력해주는 함수
     """
 
-    def predict(self, X_test):
+    def predict(self, X):
+        nonzeros0 = X.nonzero()[0]
+        nonzeros1 = X.nonzero()[1]
         predictions = []
-        X_test = X_test.toarray()
+        X_test = []
+        for i in range(X.shape[0]):
+            tmp = []
+            X_test.append(tmp)
+
+        for i in range(X.nnz):
+            X_test[nonzeros0[i]].append(nonzeros1[i])
+
+        X_test = np.array(X_test)
         if len(X_test) == 1:
-            predictions.append(self.classify(X_test[0]))
+            predictions.append(self.classify(X_test))
         else:
             for case in X_test:
                 predictions.append(self.classify(case))
-        
+
         return predictions
+
 
     """
     Req 3-1-6.
@@ -297,7 +307,7 @@ class Naive_Bayes_Classifier(object):
     테스트를 데이터를 받아 예측된 데이터(predict 함수)와
     테스트 데이터의 label값을 비교하여 정확도를 계산
     """
-    
+
     def score(self, X_test, Y_test):
         pred = self.predict(X_test)
         return util.getAcc(pred, Y_test)
@@ -305,7 +315,9 @@ class Naive_Bayes_Classifier(object):
 
 # Req 3-2-1. model에 Naive_Bayes_Classifier 클래스를 사용하여 학습합니다.
 model = Naive_Bayes_Classifier()
+print("train befo")
 model.train(X_train, Y)
+print("train after")
 
 # Req 3-2-2. 정확도 측정
 print("Naive_Bayes_Classifier accuracy: {}".format(model.score(X_test, Y_test)))
@@ -318,14 +330,14 @@ Logistic_Regression_Classifier 알고리즘 클래스입니다.
 """
 
 class Logistic_Regression_Classifier(object):
-    
+
     """
     Req 3-3-1.
     sigmoid():
     인풋값의 sigmoid 함수 값을 리턴
     """
     def sigmoid(self,z):
-        
+
         return None
 
     """
@@ -339,7 +351,7 @@ class Logistic_Regression_Classifier(object):
 
     def prediction(self, beta_x, beta_c, X):
         # 예측 확률 P(class=1)을 계산하는 식을 만든다.
-    
+
         return None
 
     """
@@ -347,13 +359,13 @@ class Logistic_Regression_Classifier(object):
     gradient_beta():
     beta값에 해당되는 gradient값을 계산하고 learning rate를 곱하여 출력.
     """
-    
+
     def gradient_beta(self, X, error, lr):
         # beta_x를 업데이트하는 규칙을 정의한다.
         beta_x_delta = None
         # beta_c를 업데이트하는 규칙을 정의한다.
         beta_c_delta = None
-    
+
         return beta_x_delta, beta_c_delta
 
     """
@@ -371,21 +383,21 @@ class Logistic_Regression_Classifier(object):
     4) 최적화 된 가중치 값들 리턴
        self.beta_x, self.beta_c
     """
-    
+
     def train(self, X, Y):
         # Req 3-3-8. learning rate 조절
         # 학습률(learning rate)를 설정한다.(권장: 1e-3 ~ 1e-6)
         lr = 1e-2
         # 반복 횟수(iteration)를 설정한다.(자연수)
         iters = 200
-        
+
         # beta_x, beta_c값을 업데이트 하기 위하여 beta_x_i, beta_c_i값을 초기화
         beta_x_i = None
         beta_c_i = None
-    
+
         #행렬 계산을 위하여 Y데이터의 사이즈를 (len(Y),1)로 저장합니다.
         Y=None
-    
+
         for i in range(iters):
             #실제 값 Y와 예측 값의 차이를 계산하여 error를 정의합니다.
             error = None
@@ -393,10 +405,10 @@ class Logistic_Regression_Classifier(object):
             beta_x_delta, beta_c_delta = self.gradient_beta(None)
             beta_x_i -= beta_x_delta.T
             beta_c_i -= beta_c_delta
-            
+
         self.beta_x = beta_x_i
         self.beta_c = beta_c_i
-        
+
         return None
 
     """
@@ -406,7 +418,7 @@ class Logistic_Regression_Classifier(object):
     """
 
     def classify(self, X_test):
-        
+
         return None
 
     """
@@ -414,7 +426,7 @@ class Logistic_Regression_Classifier(object):
     predict():
     테스트 데이터에 대해서 예측 label값을 출력해주는 함수
     """
-    
+
     def predict(self, X_test):
         predictions = []
         X_test=X_test.toarray()
@@ -423,7 +435,7 @@ class Logistic_Regression_Classifier(object):
         else:
             for case in X_test:
                 predictions.append(None)
-        
+
         return predictions
 
 
@@ -433,7 +445,7 @@ class Logistic_Regression_Classifier(object):
     테스트를 데이터를 받아 예측된 데이터(predict 함수)와
     테스트 데이터의 label값을 비교하여 정확도를 계산
     """
-    
+
     def score(self, X_test, Y_test):
 
         return None
