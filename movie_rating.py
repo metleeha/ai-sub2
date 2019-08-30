@@ -3,6 +3,7 @@ import pandas as pd
 import pickle
 import json
 import sys
+import math
 from pprint import pprint
 
 from konlpy.tag import Okt
@@ -119,11 +120,11 @@ else:
 
     mmwrite('X_train.mtx', X_train)
     mmwrite('X_test.mtx', X_test)
-# """
-# 트레이닝 파트
-# clf  <- Naive baysian mdoel
-# clf2 <- Logistic regresion model
-# """
+"""
+트레이닝 파트
+clf  <- Naive baysian mdoel
+clf2 <- Logistic regresion model
+"""
 
 # # Req 1-2-1. Naive baysian mdoel 학습
 # clf = MultinomialNB()
@@ -160,196 +161,191 @@ else:
 # with open("model2.clf", "wb") as f:
 #     pickle.dump(clf2, f)
 
-# """
-# Naive_Bayes_Classifier 알고리즘 클래스입니다.
-# """
-# class Naive_Bayes_Classifier(object):
-#     """
-#     Req 3-1-1.
-#     log_likelihoods_naivebayes():
-#     feature 데이터를 받아 label(class)값에 해당되는 likelihood 값들을
-#     naive한 방식으로 구하고 그 값의 log값을 리턴
-#     """
-#     def log_likelihoods_naivebayes(self, feature_vector, Class):
-#         log_likelihood = np.zeros(len(feature_vector))
-#         smoothing = 1
+"""
+Naive_Bayes_Classifier 알고리즘 클래스입니다.
+"""
+class Naive_Bayes_Classifier(object):
+    """
+    Req 3-1-1.
+    log_likelihoods_naivebayes():
+    feature 데이터를 받아 label(class)값에 해당되는 likelihood 값들을
+    naive한 방식으로 구하고 그 값의 log값을 리턴
+    """
+    def log_likelihoods_naivebayes(self, feature_vector, Class):
+        log_likelihood = np.zeros(len(feature_vector))
+        smoothing = 1
 
-#         if Class == 0:
-#             smooth_V = len(feature_vector)
-#             num_feature = np.sum(feature_vector) + smooth_V
+        if Class == 0:
+            smooth_V = len(feature_vector)
+            num_feature = np.sum(feature_vector) + smooth_V
 
-#             for feature_index in range(len(feature_vector)):
-#                 if feature_vector[feature_index] > 0: #feature present
-#                     log_likelihood[feature_index] += np.log((feature_vector[feature_index]+smoothing) / num_feature)
-#                 elif feature_vector[feature_index] == 0: #feature absent
-#                     log_likelihood[feature_index] += np.log(1 / num_feature)
-#         elif Class == 1:
-#             smooth_V = len(feature_vector)
-#             num_feature = np.sum(feature_vector) + smooth_V
+            for feature_index in range(len(feature_vector)):
+                if feature_vector[feature_index] > 0: #feature present
+                    log_likelihood[feature_index] += np.log((feature_vector[feature_index]+smoothing) / num_feature)
+                elif feature_vector[feature_index] == 0: #feature absent
+                    log_likelihood[feature_index] += np.log(1 / num_feature)
+        elif Class == 1:
+            smooth_V = len(feature_vector)
+            num_feature = np.sum(feature_vector) + smooth_V
 
-#             for feature_index in range(len(feature_vector)):
-#                 if feature_vector[feature_index] > 0:
-#                     log_likelihood[feature_index] += np.log((feature_vector[feature_index]+smoothing) / num_feature)
-#                 elif feature_vector[feature_index] == 0:
-#                     log_likelihood[feature_index] += np.log(1 / num_feature)
+            for feature_index in range(len(feature_vector)):
+                if feature_vector[feature_index] > 0:
+                    log_likelihood[feature_index] += np.log((feature_vector[feature_index]+smoothing) / num_feature)
+                elif feature_vector[feature_index] == 0:
+                    log_likelihood[feature_index] += np.log(1 / num_feature)
                 
-#         return log_likelihood
-#         # log_likelihood = 0.0
+        return log_likelihood
+        # log_likelihood = 0.0
 
-#         # if Class == 0:
-#         #     for feature_index in range(len(feature_vector)):
-#         #         if feature_vector[feature_index] == 1: #feature present
-#         #             log_likelihood += None
-#         #         elif feature_vector[feature_index] == 0: #feature absent
-#         #             log_likelihood += None
-#         # elif Class == 1:
-#         #     for feature_index in range(len(feature_vector)):
-#         #         if feature_vector[feature_index] == 1:
-#         #             log_likelihood += None
-#         #         elif feature_vector[feature_index] == 0:
-#         #             log_likelihood += None
+        # if Class == 0:
+        #     for feature_index in range(len(feature_vector)):
+        #         if feature_vector[feature_index] == 1: #feature present
+        #             log_likelihood += None
+        #         elif feature_vector[feature_index] == 0: #feature absent
+        #             log_likelihood += None
+        # elif Class == 1:
+        #     for feature_index in range(len(feature_vector)):
+        #         if feature_vector[feature_index] == 1:
+        #             log_likelihood += None
+        #         elif feature_vector[feature_index] == 0:
+        #             log_likelihood += None
                 
-#         # return 1
+        # return 1
 
-#     """
-#     Req 3-1-2.
-#     class_posteriors():
-#     feature 데이터를 받아 label(class)값에 해당되는 posterior 값들을
-#     구하고 그 값의 log값을 리턴
-#     """
-#     def class_posteriors(self, feature_vector):
-#         log_likelihood_0 = 0.0
-#         log_likelihood_1 = 0.0
-#         for feature_index in range(len(feature_vector)):
-#             log_likelihood_0 += self.likelihoods_0[feature_vector[feature_index]]
-#             log_likelihood_1 += self.likelihoods_1[feature_vector[feature_index]]
+    """
+    Req 3-1-2.
+    class_posteriors():
+    feature 데이터를 받아 label(class)값에 해당되는 posterior 값들을
+    구하고 그 값의 log값을 리턴
+    """
+    def class_posteriors(self, feature_vector):
+        log_likelihood_0 = 0.0
+        log_likelihood_1 = 0.0
+        for feature_index in range(len(feature_vector)):
+            log_likelihood_0 += self.likelihoods_0[feature_vector[feature_index]]
+            log_likelihood_1 += self.likelihoods_1[feature_vector[feature_index]]
 
-#         log_posterior_0 = log_likelihood_0 + self.log_prior_0
-#         log_posterior_1 = log_likelihood_1 + self.log_prior_1
+        log_posterior_0 = log_likelihood_0 + self.log_prior_0
+        log_posterior_1 = log_likelihood_1 + self.log_prior_1
 
-#         return log_posterior_0, log_posterior_1
+        return log_posterior_0, log_posterior_1
 
-#     """
-#     Req 3-1-3.
-#     classify():
-#     feature 데이터에 해당되는 posterir값들(class 개수)을 불러와 비교하여
-#     더 높은 확률을 갖는 class를 리턴
-#     """    
-#     def classify(self, feature_vector):
-#         a, b = self.class_posteriors(feature_vector)
+    """
+    Req 3-1-3.
+    classify():
+    feature 데이터에 해당되는 posterir값들(class 개수)을 불러와 비교하여
+    더 높은 확률을 갖는 class를 리턴
+    """    
+    def classify(self, feature_vector):
+        a, b = self.class_posteriors(feature_vector)
 
-#         if a > b:
-#             return 0
-#         else:
-#             return 1
+        if a > b:
+            return 0
+        else:
+            return 1
 
-#     """
-#     Req 3-1-4.
-#     train():
-#     트레이닝 데이터를 받아 학습하는 함수
-#     학습 후, 각 class에 해당하는 prior값과 likelihood값을 업데이트
-#     """
-#     def train(self, X, Y):
-#         # Req 3-1-7. smoothing 조절
-#         # likelihood 확률이 0값을 갖는것을 피하기 위하여 smoothing 값 적용
-#         smoothing = 0.0001
+    """
+    Req 3-1-4.
+    train():
+    트레이닝 데이터를 받아 학습하는 함수
+    학습 후, 각 class에 해당하는 prior값과 likelihood값을 업데이트
+    """
+    def train(self, X, Y):
+        # Req 3-1-7. smoothing 조절
+        # likelihood 확률이 0값을 갖는것을 피하기 위하여 smoothing 값 적용
+        smoothing = 0.0001
 
-#         # label 0에 해당되는 각 feature 성분의 개수값(num_token_0) 초기화 
-#         num_token_0 = np.zeros((1, X.shape[1]))
-#         # label 1에 해당되는 각 feature 성분의 개수값(num_token_1) 초기화 
-#         num_token_1 = np.zeros((1, X.shape[1]))
+        # label 0에 해당되는 각 feature 성분의 개수값(num_token_0) 초기화 
+        num_token_0 = np.zeros((1, X.shape[1]))
+        # label 1에 해당되는 각 feature 성분의 개수값(num_token_1) 초기화 
+        num_token_1 = np.zeros((1, X.shape[1]))
         
 
-#         # 데이터의 num_0,num_1,num_token_0,num_token_1 값 계산
+        # 데이터의 num_0,num_1,num_token_0,num_token_1 값 계산
 
-#         if os.path.isfile('num_token_1.npy'):
-#             print("*.npy is exist")
-#             num_token_0 = np.load('num_token_0.npy')
-#             num_token_1 = np.load('num_token_1.npy')
-#         else:
-#             print("*.npy is non exist")
-#             # JSON 파일로 저장
-#             for i in range(X.shape[0]):
-#                 print(i)
-#                 print(X.getrow(i))
-#                 print(Y[i])
-#                 if Y[i] == 0:
-#                     num_token_0 += X.getrow(i)
-#                 elif Y[i] == 1:
-#                     num_token_1 += X.getrow(i)
-#                 print(num_token_0)
-#                 print()
+        if os.path.isfile('num_token_1.npy'):
+            print("*.npy is exist")
+            num_token_0 = np.load('num_token_0.npy')
+            num_token_1 = np.load('num_token_1.npy')
+        else:
+            print("*.npy is non exist")
+            # JSON 파일로 저장
+            for i in range(X.shape[0]):
+                if Y[i] == 0:
+                    num_token_0 += X.getrow(i)
+                elif Y[i] == 1:
+                    num_token_1 += X.getrow(i)
+                print(num_token_0)
+                print()
 
-#             np.save('num_token_0.npy', num_token_0)
-#             np.save('num_token_1.npy', num_token_1)
+            np.save('num_token_0.npy', num_token_0)
+            np.save('num_token_1.npy', num_token_1)
 
-#         # smoothing을 사용하여 각 클래스에 해당되는 likelihood값 계산  
-#         print("start likeli")      
-#         self.likelihoods_0 = self.log_likelihoods_naivebayes(num_token_0[0], 0)
-#         self.likelihoods_1 = self.log_likelihoods_naivebayes(num_token_1[0], 1)
-#         print("end likeli")      
+        # smoothing을 사용하여 각 클래스에 해당되는 likelihood값 계산  
+        self.likelihoods_0 = self.log_likelihoods_naivebayes(num_token_0[0], 0)
+        self.likelihoods_1 = self.log_likelihoods_naivebayes(num_token_1[0], 1)
 
-#         # 각 class의 prior를 계산
-#         prior_probability_0 = np.mean(Y == 0)
-#         prior_probability_1 = np.mean(Y == 1)
+        # 각 class의 prior를 계산
+        prior_probability_0 = np.mean(Y == 0)
+        prior_probability_1 = np.mean(Y == 1)
 
-#         # pior의 log값 계
-#         self.log_prior_0 = np.log(prior_probability_0)
-#         self.log_prior_1 = np.log(prior_probability_1)
+        # pior의 log값 계
+        self.log_prior_0 = np.log(prior_probability_0)
+        self.log_prior_1 = np.log(prior_probability_1)
 
-#     """
-#     Req 3-1-5.
-#     predict():
-#     테스트 데이터에 대해서 예측 label값을 출력해주는 함수
-#     """
-#     def predict(self, X):
-#         nonzeros0 = X.nonzero()[0]
-#         nonzeros1 = X.nonzero()[1]
-#         predictions = []
-#         # print("predict!")
-#         # print(X)
-#         # print(X.shape)
-#         # print(X.nnz)
-#         # print(X.nonzero()[0])
-#         # print(X.nonzero()[1])
-#         # print()
-#         # X_test = X.toarray()[:10]
-#         X_test = []
-#         for i in range(X.shape[0]):
-#             tmp = []
-#             X_test.append(tmp)
+    """
+    Req 3-1-5.
+    predict():
+    테스트 데이터에 대해서 예측 label값을 출력해주는 함수
+    """
+    def predict(self, X):
+        nonzeros0 = X.nonzero()[0]
+        nonzeros1 = X.nonzero()[1]
+        predictions = []
+        # print("predict!")
+        # print(X)
+        # print(X.shape)
+        # print(X.nnz)
+        # print(X.nonzero()[0])
+        # print(X.nonzero()[1])
+        # print()
+        # X_test = X.toarray()[:10]
+        X_test = []
+        for i in range(X.shape[0]):
+            tmp = []
+            X_test.append(tmp)
 
-#         for i in range(X.nnz):
-#             X_test[nonzeros0[i]].append(nonzeros1[i])
-#         # print("X_test!")
-#         # print(X_test)
-#         # print()
+        for i in range(X.nnz):
+            X_test[nonzeros0[i]].append(nonzeros1[i])
+        # print("X_test!")
+        # print(X_test)
+        # print()
 
-#         X_test = np.array(X_test)
-#         # print(X_test)
-#         # print(X_test.shape)
-#         if (len(X_test) == 1):
-#             predictions.append(self.classify(X_test))
-#         else:
-#             for case in X_test:
-#                 # print(case)
-#                 # print(case.shape)
-#                 # print()
-#                 predictions.append(self.classify(case))
+        X_test = np.array(X_test)
+        # print(X_test)
+        # print(X_test.shape)
+        if (len(X_test) == 1):
+            predictions.append(self.classify(X_test))
+        else:
+            for case in X_test:
+                # print(case)
+                # print(case.shape)
+                # print()
+                predictions.append(self.classify(case))
         
-#         return predictions
+        return predictions
 
-#     """
-#     Req 3-1-6.
-#     score():
-#     테스트 데이터를 받아 예측된 데이터(predict 함수)와
-#     테스트 데이터의 label값을 비교하여 정확도를 계산
-#     """
-#     def score(self, X_test, Y_test):
-#         pred = self.predict(X_test)
-#         return (np.array(pred) == np.array(Y_test)).mean()
+    """
+    Req 3-1-6.
+    score():
+    테스트 데이터를 받아 예측된 데이터(predict 함수)와
+    테스트 데이터의 label값을 비교하여 정확도를 계산
+    """
+    def score(self, X_test, Y_test):
+        pred = self.predict(X_test)
+        return (np.array(pred) == np.array(Y_test)).mean()
 
-# # Req 3-2-1. model에 Naive_Bayes_Classifier 클래스를 사용하여 학습합니다.
+# Req 3-2-1. model에 Naive_Bayes_Classifier 클래스를 사용하여 학습합니다.
 # model = Naive_Bayes_Classifier()
 # model.train(X_train, Y)
 
@@ -368,6 +364,7 @@ class Logistic_Regression_Classifier(object):
     """
     def sigmoid(self,z):
         return 1 / (1 + np.exp(-z))
+        # return 1 / (1 + math.e** -z)
 
     """
     Req 3-3-2.
@@ -380,24 +377,37 @@ class Logistic_Regression_Classifier(object):
 
     def prediction(self, beta_x, beta_c, X):
         # 예측 확률 P(class=1)을 계산하는 식을 만든다.
-    
-        return self.sigmoid((X * beta_x)) + beta_c
+        absss = self.sigmoid((X * beta_x) + beta_c)
+        # print(absss)
+        return absss
 
     """
     Req 3-3-3.
     gradient_beta():
     beta값에 해당되는 gradient값을 계산하고 learning rate를 곱하여 출력.
     """
+
+
     
     def gradient_beta(self, X, error, lr):
         # beta_x를 업데이트하는 규칙을 정의한다.
         beta_x_delta = X.T * error
         # beta_c를 업데이트하는 규칙을 정의한다.
-        beta_c_delta = np.sum(error) * lr
+        beta_c_delta = np.sum(error) * lr / X.shape[0]
 
         beta_x_delta = beta_x_delta * lr / X.shape[0]
     
         return beta_x_delta, beta_c_delta
+
+
+        # # beta_x를 업데이트하는 규칙을 정의한다.
+        # beta_x_delta = (Y * np.log(pred)) + ((1 - Y) * np.log(1 - pred))
+        # # beta_c를 업데이트하는 규칙을 정의한다.
+        # beta_c_delta = np.sum(pred) * lr
+
+        # beta_x_delta = beta_x_delta * lr / pred.shape[0]
+        # # print(beta_x_delta)
+        # return beta_x_delta, beta_c_delta
 
     """
     Req 3-3-4.
@@ -418,9 +428,9 @@ class Logistic_Regression_Classifier(object):
     def train(self, X, Y):
         # Req 3-3-8. learning rate 조절
         # 학습률(learning rate)를 설정한다.(권장: 1e-3 ~ 1e-6)
-        lr = 1e-3
+        lr = 1
         # 반복 횟수(iteration)를 설정한다.(자연수)
-        iters = 200
+        iters = 100
 
         # X = X.toarray()
         # print(X)
@@ -436,7 +446,7 @@ class Logistic_Regression_Classifier(object):
     
         for i in range(iters):
             #실제 값 Y와 예측 값의 차이를 계산하여 error를 정의합니다.
-            print("start cal error ", i)
+            # print("start cal error ", i)
             error = self.prediction(beta_x_i, beta_c_i, X) - Y
             # print(error)
             #gredient_beta함수를 통하여 델타값들을 업데이트 합니다.
@@ -458,9 +468,19 @@ class Logistic_Regression_Classifier(object):
     def classify(self, X_test):
         toSig = 0
         for i in X_test:
+            # print(i)
             toSig += self.beta_x[i]
-        re = self.sigmoid(toSig+ self.beta_c)
+        
+        # hi = self.sigmoid(toSig)
+        # print()
+        # print(hi)
+        # print(toSig)
+        # print(self.beta_c)
+        re = self.sigmoid(toSig + self.beta_c)
+
         # re = self.prediction(self.beta_x, self.beta_c, X_test)
+        # print(re)
+        # print()
         if re >= 0.5:
             return 1
         else:
@@ -486,17 +506,9 @@ class Logistic_Regression_Classifier(object):
             X_test[nonzeros0[i]].append(nonzeros1[i])
 
         X_test = np.array(X_test)
-        # print(X_test)
-        # print(X_test.shape)
 
-        # predictions = []
-        # X_test = X.toarray()
-        if (len(X_test)==1):
-            predictions.append(self.classify(X_test))
-        else:
-            for case in X_test:
-                # print(case)
-                predictions.append(self.classify(case))
+        for case in X_test:
+            predictions.append(self.classify(case))
         
         return predictions
 
