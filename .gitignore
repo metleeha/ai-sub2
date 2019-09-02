@@ -2,6 +2,7 @@ settings.json
 *.idea
 *.clf
 db.sqlite3
+ai_sub
 
 __pycache__
 node_modules
