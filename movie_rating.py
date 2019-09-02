@@ -406,6 +406,7 @@ class Logistic_Regression_Classifier(object):
         else:
             return 0
 
+
     """
     Req 3-3-6.
     predict():
