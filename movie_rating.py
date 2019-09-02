@@ -13,19 +13,18 @@ import math
 # 한글 형태소 분리 
 from konlpy.tag import Okt
 
-# 자료 구조 
-from scipy.sparse import lil_matrix
+# ML 모델
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.linear_model import LogisticRegression
 
 # 출력 & Customize
 from pprint import pprint
 import util
+from util import extract_features, tokenize
 
 # define 데이터 
 OS_PATH = os.path.dirname(__file__)
 OS_DATA_PATH = os.path.dirname(__file__) + "/datafiles"
-okt = Okt()
 
 """
 Req 1-1-1. 데이터 읽기
@@ -36,14 +35,6 @@ def read_data(filename):
         data = [line.split('\t') for line in f.read().splitlines()]
         data = data[1:]
     return data
-
-"""
-Req 1-1-2. 토큰화 함수
-tokenize(): 텍스트 데이터를 받아 KoNLPy의 okt 형태소 분석기로 토크나이징
-    # okt.pos(doc, norm, stem) : norm은 정규화, stem은 근어로 표시하기를 나타냄
-"""
-def tokenize(doc):
-    return ['/'.join(t) for t in okt.pos(doc, norm=True, stem=True)]
 
 """
 데이터 전 처리
@@ -71,11 +62,19 @@ else:
 # Req 1-1-3. word_indices 초기화
 word_indices = {}
 
-# Req 1-1-3. word_indices 채우기
-for item in train_docs:
-    for word in item[0]:
-        if word not in word_indices.keys():
-            word_indices[word] = len(word_indices)
+if os.path.isfile('word_indices.pkl'):
+    with open('word_indices.pkl', 'rb') as f:
+        word_indices = pickle.load(f)
+else:
+    # Req 1-1-3. word_indices 채우기
+    for item in train_docs:
+        for word in item[0]:
+            if word not in word_indices.keys():
+                word_indices[word] = len(word_indices)
+
+    with open('word_indices.pkl', 'wb') as f:
+        pickle.dump(word_indices, f, pickle.HIGHEST_PROTOCOL)
+
 
 # 평점 label 데이터가 저장될 Y 행렬 초기화
 # Y: train data label
@@ -88,17 +87,6 @@ Y_test = np.asarray(np.array(test_docs).T[1], dtype=int)
 clf  <- Naive baysian mdoel
 clf2 <- Logistic regresion model
 """
-def extract_features(X):
-    VOCAB_SIZE = len(word_indices)
-    features = lil_matrix((len(X), VOCAB_SIZE))
-
-    for iter in range(len(X)):
-        for curWord in X[iter][0]:
-            index = word_indices[curWord]
-            if index is not None:
-                features[iter, index] += 1
-
-    return features
 
 # Req 1-1-4. sparse matrix 초기화
 # X: train feature data
@@ -106,13 +94,13 @@ def extract_features(X):
 if os.path.isfile('X_train.mtx'):
     X_train = mmread('X_train.mtx')
 else:
-    X_train = extract_features(train_docs)
+    X_train = extract_features(train_docs, word_indices)
     mmwrite('X_train.mtx', X_train)
 
 if os.path.isfile('X_test.mtx'):
     X_test = mmread('X_test.mtx')
 else:
-    X_test = extract_features(test_docs)
+    X_test = extract_features(test_docs, word_indices)
     mmwrite('X_test.mtx', X_test)
     
 # Req 1-2-1. Naive baysian mdoel 학습
@@ -232,7 +220,7 @@ class Naive_Bayes_Classifier(object):
         # label 0에 해당되는 각 feature 성분의 개수값(num_token_0) 초기화 
         num_token_0 = np.zeros((1, X.shape[1]))
         # label 1에 해당되는 각 feature 성분의 개수값(num_token_1) 초기화
-        num_token_1 = np.zeros((1,X.shape[1]))
+        num_token_1 = np.zeros((1, X.shape[1]))
 
         # 데이터의 num_0,num_1,num_token_0,num_token_1 값 계산
         if os.path.isfile('num_token_1.npy'):
