@@ -11,8 +11,8 @@ from scipy.sparse import lil_matrix
 
 
 # slack 연동 정보 입력 부분
-SLACK_TOKEN = "xoxb-619154581858-619130324707-N5IswN8gy8ZO9mcIxVYPhrkP"
-SLACK_SIGNING_SECRET = "2e319790605d216c629f5c107aa16c2a"
+SLACK_TOKEN = "xoxb-660478411538-720134820706-OQEvO093l0miS7TfqrX69QeV"
+SLACK_SIGNING_SECRET = "e05e49c18c58e8e634b7db1a1b3a6853"
 
 app = Flask(__name__)
 
@@ -42,6 +42,11 @@ def classify():
 def app_mentioned(event_data):
     channel = event_data["event"]["channel"]
     text = event_data["event"]["text"]
+    keywords = text
+    slack_web_client.chat_postMessage(
+        channel=channel,
+        text=keywords
+    )
 
 
 @app.route("/", methods=["GET"])
