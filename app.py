@@ -9,8 +9,13 @@ from slack import WebClient
 from slackeventsapi import SlackEventAdapter
 
 # slack 연동 정보 입력 부분
+<<<<<<< HEAD
 SLACK_TOKEN = "xoxb-660478411538-730029623540-fLV7v32hW6LHkwPoVa92ed2k"
 SLACK_SIGNING_SECRET = "100c0a308e485a2447decb5ed4a838f6"
+=======
+SLACK_TOKEN = "xoxb-660478411538-720134820706-OQEvO093l0miS7TfqrX69QeV"
+SLACK_SIGNING_SECRET = "e05e49c18c58e8e634b7db1a1b3a6853"
+>>>>>>> bd66db4aa4327d7c96d435a29c5d35604ae72f52
 
 app = Flask(__name__)
 
@@ -44,6 +49,7 @@ def classify(X):
 def app_mentioned(event_data):
     channel = event_data["event"]["channel"]
     text = event_data["event"]["text"]
+<<<<<<< HEAD
     inputStr = " ".join(text.split(" ")[1:])
     inputDoc = [[tokenize(inputStr)]]
     result = classify(inputDoc)
@@ -64,6 +70,12 @@ def app_mentioned(event_data):
     slack_web_client.chat_postMessage(
         channel=channel,
         attachments=keyword
+=======
+    keywords = text
+    slack_web_client.chat_postMessage(
+        channel=channel,
+        text=keywords
+>>>>>>> bd66db4aa4327d7c96d435a29c5d35604ae72f52
     )
 
 
