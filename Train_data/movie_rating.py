@@ -197,18 +197,18 @@ class Naive_Bayes_Classifier(object):
 
             for feature_index in range(len(feature_vector)):
                 if feature_vector[feature_index] > 0: #feature present
-                    log_likelihood[feature_index] += np.log((feature_vector[feature_index]+smoothing) / num_feature)
+                    log_likelihood[feature_index] += np.log(feature_vector[feature_index]+smoothing) - np.log(num_feature)
                 elif feature_vector[feature_index] == 0: #feature absent
-                    log_likelihood[feature_index] += np.log(1 / num_feature)
+                    log_likelihood[feature_index] += np.log(1) - np.log(num_feature)
         elif Class == 1:
             smooth_V = len(feature_vector)
             num_feature = np.sum(feature_vector) + smooth_V
 
             for feature_index in range(len(feature_vector)):
                 if feature_vector[feature_index] > 0:
-                    log_likelihood[feature_index] += np.log((feature_vector[feature_index]+smoothing) / num_feature)
+                    log_likelihood[feature_index] += np.log(feature_vector[feature_index]+smoothing) - np.log(num_feature)
                 elif feature_vector[feature_index] == 0:
-                    log_likelihood[feature_index] += np.log(1 / num_feature)
+                    log_likelihood[feature_index] += np.log(1) - np.log(num_feature)
         return log_likelihood
 
     """
@@ -430,6 +430,7 @@ class Logistic_Regression_Classifier(object):
             return 1
         else:
             return 0
+
 
     """
     Req 3-3-6.
