@@ -4,11 +4,9 @@ import sqlite3
 from util import extract_features, tokenize
 import random
 
-import numpy as np
 from flask import Flask
 from slack import WebClient
 from slackeventsapi import SlackEventAdapter
-from scipy.sparse import lil_matrix
 
 # slack 연동 정보 입력 부분
 SLACK_TOKEN = "xoxb-660478411538-730029623540-fLV7v32hW6LHkwPoVa92ed2k"
@@ -49,6 +47,7 @@ def app_mentioned(event_data):
     inputStr = " ".join(text.split(" ")[1:])
     inputDoc = [[tokenize(inputStr)]]
     result = classify(inputDoc)
+    print(event_data)
     if result == 1:
         result = "긍정적 리뷰"
     else:
