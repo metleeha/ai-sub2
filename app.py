@@ -16,7 +16,7 @@ import os
 OS_PATH = os.path.dirname(__file__)
 
 def send_request(query):
-    api_key = '6QhKRkIk8r6rh3O6UH9IjeAsHV7IU1L8'
+    api_key = 'GIPHY API KEY'
     base_url = "http://api.giphy.com/v1/gifs/search?q={}&api_key={}&limit=20".format(query, api_key)
     res = requests.get(base_url)
     #url을 대상으로 파일 다운로드를 한다. 
@@ -28,8 +28,8 @@ win = send_request('winner dance')
 lose = send_request('loser')
 
 # slack 연동 정보 입력 부분
-SLACK_TOKEN = 'xoxb-660478411538-725423270753-j16i0SxU4G4PNQ1Gj8S2NeEL'
-SLACK_SIGNING_SECRET = '555387ebab905771e40c853010dcd368'
+SLACK_TOKEN = 'SLACK AUTH TOKEN'
+SLACK_SIGNING_SECRET = 'SLACKE SIGNING SECRET'
 app = Flask(__name__)
 
 slack_events_adaptor = SlackEventAdapter(SLACK_SIGNING_SECRET, "/listening", app)
